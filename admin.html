@@ -4,152 +4,104 @@
 <meta charset="UTF-8">
 <title>Admin simple</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f0f0f0;
-    text-align: center;
-}
-h1 {
-    background: #6c5ce7;
-    color: white;
-    padding: 15px;
-    margin: 0;
-}
-input, button {
-    margin: 5px;
-    padding: 8px;
-    font-size: 14px;
-}
-button {
-    background: #00b894;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-button:hover {
-    background: #019874;
-}
-.carpeta {
-    border: 2px solid #6c5ce7;
-    border-radius: 8px;
-    background: white;
-    margin: 10px auto;
-    padding: 10px;
-    width: 300px;
-    text-align: left;
-}
-.carpeta img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    margin: 5px;
-    border: 1px solid #ccc;
-}
-#mensaje {
-    color: green;
-    font-weight: bold;
-    margin: 10px;
-}
+body { font-family: Arial; background:#f0f0f0; text-align:center; }
+h1 { background:#6c5ce7; color:white; padding:15px; margin:0; }
+input, button { margin:5px; padding:8px; font-size:14px; }
+button { background:#00b894; color:white; border:none; border-radius:5px; cursor:pointer; }
+button:hover { background:#019874; }
+.carpeta { border:2px solid #6c5ce7; border-radius:8px; background:white; margin:10px auto; padding:10px; width:300px; text-align:left; }
+.carpeta img { width:80px; height:80px; object-fit:cover; margin:5px; border:1px solid #ccc; }
+#mensaje { color:green; font-weight:bold; margin:10px; }
 </style>
 </head>
 <body>
 <h1>ADMIN</h1>
 
 <input type="text" id="nombreCarpeta" placeholder="Nombre carpeta">
-<button onclick="crearCarpeta()">Crear carpeta</button>
+<button id="btnCrear">Crear carpeta</button>
 
 <div id="mensaje"></div>
 <div id="lista"></div>
 
 <script>
-let carpetas = JSON.parse(localStorage.getItem("carpetas")) || [];
+// Declaramos la variable al inicio
+var carpetas = JSON.parse(localStorage.getItem("carpetas")) || [];
+
+// Asociamos el evento al botón después de que el DOM existe
+document.getElementById("btnCrear").addEventListener("click", crearCarpeta);
 
 function crearCarpeta() {
-    let nombre = document.getElementById("nombreCarpeta").value.trim();
-    if (!nombre) {
-        alert("Escribe un nombre");
-        return;
-    }
-    carpetas.push({ nombre: nombre, imagenes: [] });
-    document.getElementById("nombreCarpeta").value = "";
-    guardar();
-    mostrarMensaje("Carpeta creada ✅");
+  let nombre = document.getElementById("nombreCarpeta").value.trim();
+  if (!nombre) { alert("Escribe un nombre"); return; }
+  carpetas.push({ nombre:nombre, imagenes:[] });
+  document.getElementById("nombreCarpeta").value="";
+  guardar();
+  mostrarMensaje("Carpeta creada ✅");
 }
 
 function borrarCarpeta(i) {
-    if (!confirm("¿Eliminar carpeta?")) return;
-    carpetas.splice(i, 1);
-    guardar();
-    mostrarMensaje("Carpeta eliminada ❌");
+  carpetas.splice(i,1);
+  guardar();
+  mostrarMensaje("Carpeta eliminada ❌");
 }
 
-function cambiarNombre(i, nuevo) {
-    carpetas[i].nombre = nuevo;
-    guardar();
-    mostrarMensaje("Nombre actualizado ✏️");
+function cambiarNombre(i,nuevo) {
+  carpetas[i].nombre=nuevo;
+  guardar();
+  mostrarMensaje("Nombre actualizado ✏️");
 }
 
-function subirImagen(e, i) {
-    let files = e.target.files;
-    Array.from(files).forEach(file => {
-        let reader = new FileReader();
-        reader.onload = function(ev) {
-            carpetas[i].imagenes.push(ev.target.result);
-            guardar();
-            mostrarMensaje("Imagen subida 📷");
-        }
-        reader.readAsDataURL(file);
-    });
+function subirImagen(e,i) {
+  Array.from(e.target.files).forEach(file=>{
+    let reader=new FileReader();
+    reader.onload=ev=>{
+      carpetas[i].imagenes.push(ev.target.result);
+      guardar();
+      mostrarMensaje("Imagen subida 📷");
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
-function borrarImagen(i, j) {
-    carpetas[i].imagenes.splice(j, 1);
-    guardar();
-    mostrarMensaje("Imagen eliminada 🗑️");
+function borrarImagen(i,j) {
+  carpetas[i].imagenes.splice(j,1);
+  guardar();
+  mostrarMensaje("Imagen eliminada 🗑️");
 }
 
 function guardar() {
-    localStorage.setItem("carpetas", JSON.stringify(carpetas));
-    render();
+  localStorage.setItem("carpetas",JSON.stringify(carpetas));
+  render();
 }
 
 function render() {
-    let lista = document.getElementById("lista");
-    lista.innerHTML = "";
-
-    carpetas.forEach((c, i) => {
-        let div = document.createElement("div");
-        div.className = "carpeta";
-
-        let imagenesHTML = "";
-        c.imagenes.forEach((img, j) => {
-            imagenesHTML += `
-                <div>
-                    <img src="${img}">
-                    <button onclick="borrarImagen(${i}, ${j})">Eliminar imagen</button>
-                </div>
-            `;
-        });
-
-        div.innerHTML = `
-            <input value="${c.nombre}" onchange="cambiarNombre(${i}, this.value)">
-            <br>
-            <input type="file" multiple onchange="subirImagen(event, ${i})">
-            <button onclick="borrarCarpeta(${i})">Eliminar carpeta</button>
-            <div>${imagenesHTML}</div>
-        `;
-
-        lista.appendChild(div);
+  let lista=document.getElementById("lista");
+  lista.innerHTML="";
+  carpetas.forEach((c,i)=>{
+    let div=document.createElement("div");
+    div.className="carpeta";
+    let imagenesHTML="";
+    c.imagenes.forEach((img,j)=>{
+      imagenesHTML+=`<div><img src="${img}"><button onclick="borrarImagen(${i},${j})">Eliminar imagen</button></div>`;
     });
+    div.innerHTML=`
+      <input value="${c.nombre}" onchange="cambiarNombre(${i},this.value)">
+      <br>
+      <input type="file" multiple onchange="subirImagen(event,${i})">
+      <button onclick="borrarCarpeta(${i})">Eliminar carpeta</button>
+      <div>${imagenesHTML}</div>
+    `;
+    lista.appendChild(div);
+  });
 }
 
 function mostrarMensaje(texto) {
-    let mensaje = document.getElementById("mensaje");
-    mensaje.textContent = texto;
-    setTimeout(() => mensaje.textContent = "", 2000);
+  let mensaje=document.getElementById("mensaje");
+  mensaje.textContent=texto;
+  setTimeout(()=>mensaje.textContent="",2000);
 }
 
+// Render inicial
 render();
 </script>
 </body>
