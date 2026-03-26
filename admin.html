@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f8a1b0;
+    text-align: center;
+}
+
+h1 {
+    background: linear-gradient(90deg, #f78fb3, #e056fd);
+    color: white;
+    padding: 20px;
+    margin: 0;
+    font-size: 28px;
+}
+
+input {
+    padding: 12px;
+    margin: 8px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    width: 80%;
+    max-width: 300px;
+}
+
+button {
+    padding: 12px 25px;
+    margin: 8px;
+    border-radius: 25px;
+    border: none;
+    background: linear-gradient(135deg, #d65fd6, #8e44ad);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+button:hover {
+    background: linear-gradient(135deg, #8e44ad, #5a0a5a);
+    transform: scale(1.05);
+}
+
+.carpeta {
+    border: 2px solid white;
+    padding: 15px;
+    margin: 15px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.3);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.galeria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.galeria img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+</style>
+</head>
+
+<body>
+<h1>ADMIN</h1>
+
+<input type="text" id="nombreCarpeta" placeholder="Nombre carpeta">
+<button onclick="crearCarpeta()">➕ Crear carpeta</button>
+
+<div class="buscador">
+    <input type="text" id="buscar" placeholder="Buscar carpeta..." onkeyup="render()">
+</div>
+
+<div id="lista"></div>
+
+<script>
+// Manejo de carpetas
+let carpetas = JSON.parse(localStorage.getItem("carpetas")) || [];
+
+function crearCarpeta() {
+    let nombre = document.getElementById("nombreCarpeta").value.trim();
+    if (!nombre) return alert("Escribe un nombre");
+    carpetas.push({ nombre: nombre, imagenes: [] });
+    document.getElementById("nombreCarpeta").value = "";
+    localStorage.setItem("carpetas", JSON.stringify(carpetas));
+    render();
+}
+
+function borrarCarpeta(i) {
+    if (!confirm("¿Eliminar carpeta?")) return;
+    carpetas.splice(i, 1);
+    localStorage.setItem("carpetas", JSON.stringify(carpetas));
+    render();
+}
+
+function cambiarNombre(i, nuevo) {
+    carpetas[i].nombre = nuevo;
+    localStorage.setItem("carpetas", JSON.stringify(carpetas));
+    render();
+}
+
+function subirImagen(e, i) {
+    let files = e.target.files;
+    Array.from(files).forEach(file => {
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+            carpetas[i].imagenes.push(ev.target.result);
+            localStorage.setItem("carpetas", JSON.stringify(carpetas));
+            render();
+        }
+        reader.readAsDataURL(file);
+    });
+}
+
+function borrarImagen(i, j) {
+    carpetas[i].imagenes.splice(j, 1);
+    localStorage.setItem("carpetas", JSON.stringify(carpetas));
+    render();
+}
+
+function render() {
+    let lista = document.getElementById("lista");
+    if (!lista) return;
+    let filtro = document.getElementById("buscar")?.value.toLowerCase() || "";
+
+    lista.innerHTML = "";
+
+    carpetas.forEach((c, i) => {
+        if (!c.nombre.toLowerCase().includes(filtro)) return;
+
+        let div = document.createElement("div");
+        div.className = "carpeta";
+
+        let imagenesHTML = c.imagenes.map((img, j) => `
+            <div>
+                <img src="${img}">
+                <br>
+                <button onclick="borrarImagen(${i}, ${j})">❌ Eliminar</button>
+            </div>
+        `).join("");
+
+        div.innerHTML = `
+            <input value="${c.nombre}" onchange="cambiarNombre(${i}, this.value)">
+            <br>
+            <input type="file" multiple onchange="subirImagen(event, ${i})">
+            <button onclick="borrarCarpeta(${i})">🗑️ Eliminar carpeta</button>
+            <div class="galeria">${imagenesHTML}</div>
+        `;
+
+        lista.appendChild(div);
+    });
+}
+
+render();
+</script>
+</body>
+</html>
