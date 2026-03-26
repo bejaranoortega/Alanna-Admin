@@ -9,20 +9,17 @@ body {
     background: #f0f0f0;
     text-align: center;
 }
-
 h1 {
     background: #6c5ce7;
     color: white;
     padding: 15px;
     margin: 0;
 }
-
 input, button {
     margin: 5px;
     padding: 8px;
     font-size: 14px;
 }
-
 button {
     background: #00b894;
     color: white;
@@ -30,11 +27,9 @@ button {
     border-radius: 5px;
     cursor: pointer;
 }
-
 button:hover {
     background: #019874;
 }
-
 .carpeta {
     border: 2px solid #6c5ce7;
     border-radius: 8px;
@@ -44,13 +39,17 @@ button:hover {
     width: 300px;
     text-align: left;
 }
-
 .carpeta img {
     width: 80px;
     height: 80px;
     object-fit: cover;
     margin: 5px;
     border: 1px solid #ccc;
+}
+#mensaje {
+    color: green;
+    font-weight: bold;
+    margin: 10px;
 }
 </style>
 </head>
@@ -60,6 +59,7 @@ button:hover {
 <input type="text" id="nombreCarpeta" placeholder="Nombre carpeta">
 <button onclick="crearCarpeta()">Crear carpeta</button>
 
+<div id="mensaje"></div>
 <div id="lista"></div>
 
 <script>
@@ -74,17 +74,20 @@ function crearCarpeta() {
     carpetas.push({ nombre: nombre, imagenes: [] });
     document.getElementById("nombreCarpeta").value = "";
     guardar();
+    mostrarMensaje("Carpeta creada ✅");
 }
 
 function borrarCarpeta(i) {
     if (!confirm("¿Eliminar carpeta?")) return;
     carpetas.splice(i, 1);
     guardar();
+    mostrarMensaje("Carpeta eliminada ❌");
 }
 
 function cambiarNombre(i, nuevo) {
     carpetas[i].nombre = nuevo;
     guardar();
+    mostrarMensaje("Nombre actualizado ✏️");
 }
 
 function subirImagen(e, i) {
@@ -94,6 +97,7 @@ function subirImagen(e, i) {
         reader.onload = function(ev) {
             carpetas[i].imagenes.push(ev.target.result);
             guardar();
+            mostrarMensaje("Imagen subida 📷");
         }
         reader.readAsDataURL(file);
     });
@@ -102,6 +106,7 @@ function subirImagen(e, i) {
 function borrarImagen(i, j) {
     carpetas[i].imagenes.splice(j, 1);
     guardar();
+    mostrarMensaje("Imagen eliminada 🗑️");
 }
 
 function guardar() {
@@ -137,6 +142,12 @@ function render() {
 
         lista.appendChild(div);
     });
+}
+
+function mostrarMensaje(texto) {
+    let mensaje = document.getElementById("mensaje");
+    mensaje.textContent = texto;
+    setTimeout(() => mensaje.textContent = "", 2000);
 }
 
 render();
